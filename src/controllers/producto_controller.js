@@ -8,7 +8,17 @@ const { validarError } = require("./../services/validacion");
 
 const obtenerProductos = async (req, res) => {
   try {
-    const resultado = await pool.query("SELECT * FROM mostrarProductos WHERE estatus");
+    const { id_producto } = req.query;
+    let params = [],
+      where = "";
+    if (id_producto) {
+      where = "AND id_producto = $1";
+      params.push(id_producto);
+    }
+    const resultado = await pool.query(
+      `SELECT * FROM mostrarProductos WHERE estatus ${where}`,
+      params
+    );
     res.status(200).send({
       ok: true,
       resultado: resultado.rows,
@@ -105,49 +115,49 @@ const editarProducto = async (req, res) => {
   }
 };
 
-const darAltaProducto = async(req, res) => {
-    try {
-        const validar = validarError(await darAltaProductoSchema(req));
-        if (validar) {
-          if (validar.errores) {
-            return res.status(400).send({
-              ok: false,
-              mensaje: validar.mensaje,
-              errores: validar.errores,
-            });
-          }
-          return res.status(400).send({
-            ok: false,
-            mensaje: validar.mensaje,
-          });
-        }
-        const { id_producto, estatus } = req.body;
-        const resultado = await pool.query("SELECT alta_producto($1,$2)", [
-          id_producto,
-          estatus
-        ]);
-        if (resultado.rowCount > 0) {
-          res.status(200).send({
-            ok: true,
-            resultado: resultado.rows[0].alta_producto,
-          });
-        } else {
-          res.status(200).send({
-            ok: false,
-            resultado: "Error al editar producto",
-          });
-        }
-      } catch (error) {
-        res.status(200).send({
+const darAltaProducto = async (req, res) => {
+  try {
+    const validar = validarError(await darAltaProductoSchema(req));
+    if (validar) {
+      if (validar.errores) {
+        return res.status(400).send({
           ok: false,
-          resultado: error.message,
+          mensaje: validar.mensaje,
+          errores: validar.errores,
         });
       }
-}
+      return res.status(400).send({
+        ok: false,
+        mensaje: validar.mensaje,
+      });
+    }
+    const { id_producto, estatus } = req.body;
+    const resultado = await pool.query("SELECT alta_producto($1,$2)", [
+      id_producto,
+      estatus,
+    ]);
+    if (resultado.rowCount > 0) {
+      res.status(200).send({
+        ok: true,
+        resultado: resultado.rows[0].alta_producto,
+      });
+    } else {
+      res.status(200).send({
+        ok: false,
+        resultado: "Error al editar producto",
+      });
+    }
+  } catch (error) {
+    res.status(200).send({
+      ok: false,
+      resultado: error.message,
+    });
+  }
+};
 
 module.exports = {
   obtenerProductos,
   agregarProducto,
   editarProducto,
-  darAltaProducto
+  darAltaProducto,
 };
