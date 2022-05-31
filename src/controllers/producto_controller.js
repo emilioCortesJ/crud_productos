@@ -16,7 +16,7 @@ const obtenerProductos = async (req, res) => {
       params.push(id_producto);
     }
     const resultado = await pool.query(
-      `SELECT * FROM mostrarProductos WHERE estatus ${where}`,
+      `SELECT * FROM mostrarProductos WHERE estatus ${where} ORDER BY id_producto`,
       params
     );
     res.status(200).send({
