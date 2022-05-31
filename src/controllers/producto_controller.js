@@ -8,20 +8,25 @@ const { validarError } = require("./../services/validacion");
 
 const obtenerProductos = async (req, res) => {
   try {
-    const { id_producto } = req.query;
+    const { id_producto, limit = 5, offset = 0 } = req.query;
     let params = [],
       where = "";
     if (id_producto) {
       where = "AND id_producto = $1";
       params.push(id_producto);
     }
+    
     const resultado = await pool.query(
-      `SELECT * FROM mostrarProductos WHERE estatus ${where} ORDER BY id_producto`,
+      `SELECT * FROM mostrarProductos WHERE estatus ${where}
+      ORDER BY id_producto
+      LIMIT ${limit} OFFSET ${offset}`,
       params
     );
+    const contador = await pool.query('SELECT COUNT(*) FROM mostrarProductos WHERE estatus');
     res.status(200).send({
       ok: true,
       resultado: resultado.rows,
+      contador: contador.rows[0].count
     });
   } catch (error) {
     res.status(200).send({
